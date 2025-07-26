@@ -1,0 +1,20 @@
+{
+  "name": "tinder",
+  "version": "1.0.0",
+  "description": "tinder for devs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/aap.js",
+    "dev": "nodemon src/aap.js"
+  },
+  "keywords": [
+    "Nodejs",
+    "JavaScript"
+  ],
+  "author": "Mohataseem Khan",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
