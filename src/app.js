@@ -59,11 +59,10 @@ app.post("/login", async (req, res) => {
     }
 
     // const ispasswordvalid = await bcrypt.compareSync("Moh@taseem123", "$2b$10$qsi8SGerG4.lQEgeJV.D8u/QuOUM2VxLVC8ydV5g8Uojf6ugk898u");
-    const ispasswordvalid = await bcrypt.compareSync(password, user.password);
+    const ispasswordvalid = await user.validatepassword(password);
     if (ispasswordvalid) {
       //create A jwt token
-      const token = await jwt.sign({ _id: user._id }, "secretkey", {expiresIn: '1h'});
-      console.log("JWT Token:", token);
+      const token = await user.getJWT();
 
       //add the token to cookie and send the response bacl to the user
       res.cookie("token", token, {
