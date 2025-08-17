@@ -1,28 +1,30 @@
-const adminauth = (req, res ,next)=>{
-    console.log("admin auth is getting checked")
-    const token = "vfcdes"
-    const isAdminAuthorized = token ==="xyz"
-    if (!isAdminAuthorized){
-        res.status(401).send("unauthorized request")
-    }
-    else{
-        next()
-    }
-}
-const userauth = (req, res ,next)=>{
-    console.log("admin auth is getting checked")
-    const token = "vfcdes"
-    const isAdminAuthorized = token ==="xyz"
-    if (!isAdminAuthorized){
-        res.status(401).send("unauthorized request")
-    }
-    else{
-        next()
-    }
-}
+const jwt = require("jsonwebtoken");
+const User = require("../models/user");
 
+const userauth = async (req, res, next) => {
+  //to read the token from the req cookies
+  try {
+    const { token } = req.cookies;
+    if (!token) {
+    //   return res.status(401).json({ message: "Unauthorized access" });
+      throw new Error("Unauthorized access");
+    }
+    const decodeobj = await jwt.verify(token, "secretkey");
 
-module.exports ={
-    adminauth,
-    userauth
+    const { _id } = decodeobj;
+    const user = await User.findById(_id);
+    if (!user) {
+    //   return res.status(401).json({ message: "Unauthorized access" });
+      throw new Error("Unauthorized access");
+    }
+    req.user = user; // Attach user to request object
+    next();
+  } catch (error) {
+    console.error("Authentication error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports = {
+  userauth,
 };
