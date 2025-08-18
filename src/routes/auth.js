@@ -1,13 +1,11 @@
-const express = require('express');
+const express = require("express");
 const { validatesignupdata } = require("../../utils/validation");
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const { userauth } = require("../middlewares/auth");
 const jwt = require("jsonwebtoken");
 
-
 const authrouter = express.Router();
-
 
 authrouter.post("/signup", async (req, res) => {
   try {
@@ -75,6 +73,16 @@ authrouter.post("/login", async (req, res) => {
   }
 });
 
-
+authrouter.post("/logout", async (req, res) => {
+  try {
+    //clear the cookie
+    res.cookie("token", null,{
+      expires: new Date(Date.now()), // 1 hour ago
+    })
+    res.send("Logout successful");  
+  } catch (err) {
+    res.status(400).send("Error: " + err.message);
+  }
+});
 
 module.exports = authrouter;

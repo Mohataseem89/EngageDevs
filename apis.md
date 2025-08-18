@@ -8,7 +8,8 @@
 
 ## profileRouter
 - GET /profile/view
-- PATCH /profile/edit
+- PATCH /profile/edit or update
+- PATCH /profile/password  //forgot password API
 - Patch /profile/delete
 - GET /profile/followers
 - GET /profile/following
@@ -16,7 +17,6 @@
 - GET /profile/likes
 - GET /profile/comments
 - GET /profile/notifications
-- PATCH /profile/password
 - PATCH /profile/username
 - PATCH /profile/email
 
