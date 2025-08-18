@@ -1,113 +1,23 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const app = express();
-const User = require("./models/user");
-const { validatesignupdata } = require("../utils/validation");
-const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
-const jwt = require("jsonwebtoken");
-const { userauth } = require("./middlewares/auth");
 
 // Middleware to parse cookies
 app.use(cookieParser());
 
 app.use(express.json());
 
-app.post("/signup", async (req, res) => {
-  try {
-    //validation of data
-    validatesignupdata(req);
 
-    const { firstName, lastName, email, password } = req.body;
-    //encrypt th password
-    const passwordhash = await bcrypt.hash(password, 10);
-    // req.body.password = passwordhash;
-    console.log("Password hash:", passwordhash);
-
-    //creating new instance of the user model
-    // console.log(req.body)
-    // res.send("Signup endpoint");
-    //creating new instance of the user model
-    const user = new User({
-      firstName,
-      lastName,
-      email,
-      password: passwordhash,
-    });
-    // const user = new User({
-    //   firstName: "Johnny",
-    //   lastName: "Doe",
-    //   email: "jhon@gmail.com",
-    //   password: "password123",
-    // });
-
-    await user.save();
-    res.send("Signup endpoint");
-  } catch (err) {
-    res.status(400).send("Error: " + err.message);
-  }
-});
-
-app.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      // return res.status(404).send("User not found");
-      throw new Error("User not found");
-    }
-
-    // const ispasswordvalid = await bcrypt.compareSync("Moh@taseem123", "$2b$10$qsi8SGerG4.lQEgeJV.D8u/QuOUM2VxLVC8ydV5g8Uojf6ugk898u");
-    const ispasswordvalid = await user.validatepassword(password);
-    if (ispasswordvalid) {
-      //create A jwt token
-      const token = await user.getJWT();
-
-      //add the token to cookie and send the response bacl to the user
-      res.cookie("token", token, {
-        expires: new Date(Date.now() + 3600000), // 1 hour
-      });
-
-      res.send("Login successful");
-    } else {
-      // return res.status(401).send("Invalid password");
-      throw new Error("Invalid password");
-    }
-  } catch (err) {
-    res.status(400).send("Error: " + err.message);
-  }
-});
-
-app.get("/profile", userauth, async (req, res) => {
-  try {
-    const user = req.user; // User is attached by the userauth middleware
-
-    res.send(user);
-  } catch (err) {
-    res.status(400).send("Error fetching profile: " + err.message);
-  }
-
-  // console.log("Cookies:", cookies);
-  // res.send("reading cookies");
-});
+const authrouter = require("./routes/auth");
+const requestrouter = require("./routes/connrequest");  
+const profilerouter = require("./routes/profile");
 
 
 
-app.post("/sendconnectreq", userauth, async(req, res)=>{
-  //to send connection request to the user
-  const user = req.user; // User is attached by the userauth middleware
-  console.log("sending connection request");
-
-  res.send( user.firstName + " Connection request sent");
-})
-
-
-
-
-
-
-
+app.use("/", authrouter);
+app.use("/", requestrouter);
+app.use("/", profilerouter);
 
 
 
