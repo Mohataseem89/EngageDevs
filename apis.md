@@ -32,8 +32,8 @@ Status: ignore, interested, accepted, rejected
 
 
 ## userRouter
-- GET /user/connections
 - GET /user/requests/received
+- GET /user/connections
 - GET /user/feed
 - GET /user/posts
 

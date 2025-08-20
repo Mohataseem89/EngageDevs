@@ -9,7 +9,7 @@ const connectRequestSchema = new mongoose.Schema(
     },
     receiverUserId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "User", // Reference to the User model
       required: true
     },
     status: {
