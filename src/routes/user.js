@@ -1,62 +1,108 @@
-const express = require('express');
+const express = require("express");
 const userrouter = express.Router();
-const {userauth} = require('../middlewares/auth');
+const { userauth } = require("../middlewares/auth");
 
-const connectionRequest = require('../models/connectRequest');
-
-const User_Data = "firstName lastName photoUrl skills age gender"
-
+const connectionRequest = require("../models/connectRequest");
+const User = require("../models/user");
+const User_Data = "firstName lastName photoUrl skills age gender";
 
 //to get the pending connection request for the loggedin user
 userrouter.get("/user/requests/recieved", userauth, async (req, res) => {
   try {
     const loggedInUser = req.user;
 
-    const connectionRequests = await connectionRequest.find({
+    const connectionRequests = await connectionRequest
+      .find({
         receiverUserId: loggedInUser._id,
-        status: "interested"
-
-    }).populate("senderUserId", User_Data );
+        status: "interested",
+      })
+      .populate("senderUserId", User_Data);
     res.json({
-        message: "Connection requests fetched successfully",
-        data: connectionRequests,
-
-    })
+      message: "Connection requests fetched successfully",
+      data: connectionRequests,
+    });
   } catch (err) {
     res.status(401).send("Error: " + err.message);
   }
 });
 
-
 userrouter.get("/user/connections", userauth, async (req, res) => {
   try {
     const loggedInUser = req.user;
-    const connections = await connectionRequest.find({
-      $or: [
-        { senderUserId: loggedInUser._id, status: "accepted" },
-        { receiverUserId: loggedInUser._id, status: "accepted" }
-      ]
-    }).populate("senderUserId", User_Data).populate("receiverUserId", User_Data);
+
+    
+
+
+    const connections = await connectionRequest
+      .find({
+        $or: [
+          { senderUserId: loggedInUser._id, status: "accepted" },
+          { receiverUserId: loggedInUser._id, status: "accepted" },
+        ],
+      })
+      .populate("senderUserId", User_Data)
+      .populate("receiverUserId", User_Data);
     // }).populate("senderUserId", User_Data)
 
-// console.log(connections)
+    // console.log(connections)
     const data = connections.map((row) => {
-        if (row.senderUserId._id.equals(loggedInUser._id)) {
-            return row.recieverUserId;
-        }
-        return row.senderUserId;
-    })
+      if (row.senderUserId._id.equals(loggedInUser._id)) {
+        return row.recieverUserId;
+      }
+      return row.senderUserId;
+    });
 
-
-    res.json({ 
-        message: "Connections fetched successfully",
-        data: data
-    })
-    
+    res.json({
+      message: "Connections fetched successfully",
+      data: data,
+    });
   } catch (err) {
     res.status(400).send("Error: " + err.message);
   }
 });
+
+//feed API
+userrouter.get("/feed", userauth, async (req, res) => {
+  try {
+    const loggedInUser = req.user;
+
+    const page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    limit = limit > 50 ? 50 : limit; // 
+    const skip = (page - 1) * limit;
+
+    const connectionRequests = await connectionRequest
+      .find({
+        $or: [
+          { senderUserId: loggedInUser._id },
+          { receiverUserId: loggedInUser._id },
+        ],
+      })
+      .select("senderUserId receiverUserId");
+
+    const hideUsersFromFeed = new Set();
+
+    connectionRequests.forEach((req) => {
+      hideUsersFromFeed.add(req.senderUserId.toString());
+      hideUsersFromFeed.add(req.receiverUserId.toString());
+    });
+    // console.log(hideUsersFromFeed);
+
+    const users = await User.find({
+      $and: [
+        { _id: { $nin: Array.from(hideUsersFromFeed) } },
+        { _id: { $ne: loggedInUser._id } },
+      ],
+    }).select(User_Data).skip(skip).limit(limit);
+
+    // res.send(connectionRequests);
+    res.send(users)
+  } catch (err) {
+    res.status(400).send("Error fetching feed:" + err.message);
+  }
+});
+
+
 
 
 
@@ -98,19 +144,6 @@ userrouter.patch("/user/:userid", async (req, res) => {
   }
 });
 
-//Feed API - GET /feed - get the users from the database
-
-userrouter.get("/feed", async (req, res) => {
-  try {
-    const users = await User.find({});
-    res.send(users);
-  } catch (err) {
-    res.status(400).send("Error fetching feed:" + err.message);
-  }
-});
-
 //for practice
-
-
 
 module.exports = userrouter;
