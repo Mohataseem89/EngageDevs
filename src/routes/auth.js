@@ -63,7 +63,8 @@ authrouter.post("/login", async (req, res) => {
         expires: new Date(Date.now() + 3600000), // 1 hour
       });
 
-      res.send("Login successful");
+      // res.send("Login successful");
+      res.send(user);
     } else {
       // return res.status(401).send("Invalid password");
       throw new Error("Invalid password");
