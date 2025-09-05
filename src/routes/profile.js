@@ -20,7 +20,7 @@ profilerouter.get("/profile/view", userauth, async (req, res) => {
   // res.send("reading cookies");
 });
 
-profilerouter.patch("/profile/edit", userauth, async (req, res) => {
+profilerouter.post("/profile/edit", userauth, async (req, res) => {
   try {
     if(!validateeditprofiledata(req)) {
       throw new Error("Invalid fields in profile edit request");

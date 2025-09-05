@@ -2,14 +2,27 @@ const express = require("express");
 const connectDB = require("./config/database");
 const app = express();
 const cookieParser = require("cookie-parser");
-const cors = require("cors")
-// Middleware to parse cookies
-app.use(cors({
-  origin: 'http://localhost:5173', // frontend URL
-  credentials: true // allow credentials (cookies) to be sent
-}))
-app.use(cookieParser());
+const cors = require("cors");
 
+// Remove any existing CORS configuration and replace with this:
+app.use((req, res, next) => {
+  // Set CORS headers manually for maximum control
+  res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    console.log('OPTIONS request received for:', req.url, 'Method:', req.headers['access-control-request-method']);
+    return res.status(200).end();
+  }
+  
+  console.log(`${req.method} request to ${req.url}`);
+  next();
+});
+
+app.use(cookieParser());
 app.use(express.json());
 
 const authrouter = require("./routes/auth");

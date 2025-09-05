@@ -7,7 +7,9 @@ const userauth = async (req, res, next) => {
     const { token } = req.cookies;
     if (!token) {
     //   return res.status(401).json({ message: "Unauthorized access" });
-      throw new Error("Unauthorized access");
+      // throw new Error("Unauthorized access");
+      return res.status(401).send("please login first");
+
     }
     const decodeobj = await jwt.verify(token, "secretkey");
 
