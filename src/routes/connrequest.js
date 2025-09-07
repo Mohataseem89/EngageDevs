@@ -80,7 +80,7 @@ requestrouter.post(
     try {
       const loggedInUser = req.user;
       const { status } = req.params;
-      const requestId = req.params.requestId.trim(); // usinf trim to remove any extra spaced
+      const requestId = req.params.requestId.trim(); // using trim to remove any extra spaces
 
       const allowedStatus = ["accepted", "rejected"];
       if (!allowedStatus.includes(status)) {
@@ -105,6 +105,78 @@ requestrouter.post(
       res.json({ message: `Connection request ${status} successfully`, data });
     } catch (err) {
       res.status(400).send("ERROR: " + err.message);
+    }
+  }
+);
+
+// NEW ROUTE: Get received requests for the logged-in user
+requestrouter.get(
+  "/user/requests/received", 
+  userauth, 
+  async (req, res) => {
+    try {
+      const loggedInUser = req.user;
+
+      // Find all connection requests where the logged-in user is the receiver
+      // and status is "interested" (pending requests)
+      const connectionRequests = await ConnectionRequest.find({
+        receiverUserId: loggedInUser._id,
+        status: "interested"
+      }).populate("senderUserId", "firstName lastName photoUrl age gender about");
+
+      // Transform the data to match your frontend expectations
+      const formattedRequests = connectionRequests.map(request => ({
+        _id: request._id,
+        status: request.status,
+        fromUserId: request.senderUserId, // Frontend expects fromUserId
+        createdAt: request.createdAt
+      }));
+
+      res.json({
+        message: "Connection requests retrieved successfully",
+        data: formattedRequests
+      });
+
+    } catch (err) {
+      console.error("Error fetching received requests:", err);
+      res.status(500).json({ 
+        message: "Failed to fetch connection requests",
+        error: err.message 
+      });
+    }
+  }
+);
+
+// BONUS: Get sent requests (optional - for future use)
+requestrouter.get(
+  "/user/requests/sent", 
+  userauth, 
+  async (req, res) => {
+    try {
+      const loggedInUser = req.user;
+
+      const connectionRequests = await ConnectionRequest.find({
+        senderUserId: loggedInUser._id
+      }).populate("receiverUserId", "firstName lastName photoUrl age gender about");
+
+      const formattedRequests = connectionRequests.map(request => ({
+        _id: request._id,
+        status: request.status,
+        toUserId: request.receiverUserId,
+        createdAt: request.createdAt
+      }));
+
+      res.json({
+        message: "Sent requests retrieved successfully", 
+        data: formattedRequests
+      });
+
+    } catch (err) {
+      console.error("Error fetching sent requests:", err);
+      res.status(500).json({
+        message: "Failed to fetch sent requests",
+        error: err.message
+      });
     }
   }
 );
