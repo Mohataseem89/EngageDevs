@@ -21,9 +21,18 @@ app.use((req, res, next) => {
   console.log(`${req.method} request to ${req.url}`);
   next();
 });
+const corsOptions = {
+  origin: 'http://localhost:5173', // Your frontend URL
+  credentials: true, // Allow credentials (cookies, authorization headers)
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200 // For legacy browser support
+};
 
 app.use(cookieParser());
 app.use(express.json());
+app.use(cors(corsOptions));
+
 
 const authrouter = require("./routes/auth");
 const requestrouter = require("./routes/connrequest");
