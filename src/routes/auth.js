@@ -35,8 +35,16 @@ authrouter.post("/signup", async (req, res) => {
     //   password: "password123",
     // });
 
-    await user.save();
-    res.send("Signup endpoint");
+    const savedUser = await user.save();
+    const token = await savedUser.getJWT();
+
+      //add the token to cookie and send the response bacl to the user
+      res.cookie("token", token, {
+        expires: new Date(Date.now() + 3600000), // 1 hour
+      });
+      res.send({message: "User registered successfully", user: savedUser});
+
+    // res.send("Signup endpoint");
   } catch (err) {
     res.status(400).send("Error: " + err.message);
   }
