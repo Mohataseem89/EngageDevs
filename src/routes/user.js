@@ -30,9 +30,6 @@ userrouter.get("/user/connections", userauth, async (req, res) => {
   try {
     const loggedInUser = req.user;
 
-    
-
-
     const connections = await connectionRequest
       .find({
         $or: [
@@ -68,7 +65,7 @@ userrouter.get("/feed", userauth, async (req, res) => {
 
     const page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
-    limit = limit > 50 ? 50 : limit; // 
+    limit = limit > 50 ? 50 : limit; //
     const skip = (page - 1) * limit;
 
     const connectionRequests = await connectionRequest
@@ -92,20 +89,20 @@ userrouter.get("/feed", userauth, async (req, res) => {
       $and: [
         { _id: { $nin: Array.from(hideUsersFromFeed) } },
         { _id: { $ne: loggedInUser._id } },
+        { _id: { $ne: connectionRequests._id } },
+        { _id: { $ne: connectionRequest._id } },
       ],
-    }).select(User_Data).skip(skip).limit(limit);
+    })
+      .select(User_Data)
+      .skip(skip)
+      .limit(limit);
 
     // res.send(connectionRequests);
-    res.send(users)
+    res.send(users);
   } catch (err) {
     res.status(400).send("Error fetching feed:" + err.message);
   }
 });
-
-
-
-
-
 
 //just for practice
 //update data of the user
